@@ -32,6 +32,22 @@ const EmailVerificationPage = () => {
     }
   }, [data, navigate]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isResending) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            setIsResending(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isResending]);
+
   const handleResendOTP = useCallback(async () => {
     setIsResending(true);
     setResendTimer(60);
@@ -41,16 +57,6 @@ const EmailVerificationPage = () => {
       });
       setCheckOtp(response.data.otp);
       toast.success("OTP has been sent!");
-
-      const interval = setInterval(() => {
-        setResendTimer((prev) => {
-          if (prev === 1) {
-            clearInterval(interval);
-            setIsResending(false);
-          }
-          return prev - 1;
-        });
-      }, 1000);
     } catch (error) {
       console.error(error);
       toast.error("Failed to resend OTP. Please try again.");
